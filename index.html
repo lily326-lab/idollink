@@ -76,6 +76,14 @@ const listDiv = document.getElementById("list");
 const selectedDiv = document.getElementById("selected");
 const recDiv = document.getElementById("rec");
 
+
+// ★ 「-」無視用
+function isValid(val) {
+  return val && val !== "-" && val.trim() !== "";
+}
+
+
+// CSV読み込み
 fetch(url)
 .then(res => res.text())
 .then(text => {
@@ -96,6 +104,7 @@ fetch(url)
 
   render();
 });
+
 
 // 曲一覧
 function renderList() {
@@ -143,11 +152,13 @@ function renderList() {
   });
 }
 
+
 // 選択
 function toggleSelect(id) {
   selectedSong = (selectedSong === id) ? null : id;
   render();
 }
+
 
 // 選択表示
 function renderSelected() {
@@ -167,7 +178,8 @@ function renderSelected() {
   `;
 }
 
-// ★
+
+// ★変換
 function scoreToStars(score) {
   if (score >= 10) return "★★★★★";
   if (score >= 7) return "★★★★";
@@ -176,10 +188,12 @@ function scoreToStars(score) {
   return "★";
 }
 
-// ハイライト関数
+
+// ハイライト
 function highlight(text, isMatch) {
   return isMatch ? `<span class="highlight">${text}</span>` : text;
 }
+
 
 // おすすめ
 function renderRecommend() {
@@ -197,10 +211,24 @@ function renderRecommend() {
       let score = 0;
       let reasons = [];
 
-      const composerMatch = s.composer === base.composer;
-      const arrangerMatch = s.arranger === base.arranger;
-      const lyricistMatch = s.lyricist === base.lyricist;
-      const commonTags = s.tags.filter(t => base.tags.includes(t));
+      const composerMatch =
+        isValid(s.composer) &&
+        isValid(base.composer) &&
+        s.composer === base.composer;
+
+      const arrangerMatch =
+        isValid(s.arranger) &&
+        isValid(base.arranger) &&
+        s.arranger === base.arranger;
+
+      const lyricistMatch =
+        isValid(s.lyricist) &&
+        isValid(base.lyricist) &&
+        s.lyricist === base.lyricist;
+
+      const commonTags = s.tags.filter(t =>
+        isValid(t) && base.tags.includes(t)
+      );
 
       if (composerMatch) { score += 5; reasons.push("作曲"); }
       if (arrangerMatch) { score += 4; reasons.push("編曲"); }
@@ -244,6 +272,7 @@ function renderRecommend() {
     `).join("")
     : "おすすめ曲：0曲";
 }
+
 
 // 再描画
 function render() {
