@@ -5,36 +5,84 @@
 <title>idollink</title>
 
 <style>
-body { font-family: sans-serif; padding: 20px; }
+body {
+  font-family: sans-serif;
+  padding: 20px;
+  background: #fafafa;
+}
 
 .area { margin-bottom: 20px; }
 
+/* アーティスト一覧 */
+#list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  max-height: 320px;
+  overflow-y: auto;
+  padding-right: 5px;
+}
+
+/* アーティストボタン */
 .artist {
-  padding: 10px;
-  margin: 8px 0;
-  background: #eee;
-  border-radius: 10px;
+  padding: 8px 14px;
+  background: linear-gradient(135deg, #f0f0f0, #e0e0e0);
+  border-radius: 999px;
   cursor: pointer;
+  font-size: 14px;
+  transition: 0.2s;
+  user-select: none;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
 }
 
-.song-list { margin-left: 10px; display: none; }
+.artist:hover {
+  background: linear-gradient(135deg, #dcdcdc, #cfcfcf);
+}
 
+.artist.active {
+  background: #4da3ff;
+  color: white;
+}
+
+/* 曲リスト */
+.song-list {
+  width: 100%;
+  margin-top: 5px;
+  margin-bottom: 10px;
+  display: none;
+}
+
+/* 曲ボタン */
 .song {
-  padding: 6px;
+  display: inline-block;
+  margin: 4px;
+  padding: 6px 10px;
+  background: #fff;
+  border-radius: 999px;
+  border: 1px solid #ddd;
   cursor: pointer;
-  border-radius: 6px;
+  font-size: 13px;
+  transition: 0.2s;
 }
 
-.song:hover { background: #f5f5f5; }
+.song:hover {
+  background: #f0f0f0;
+}
 
-.selected { background: #cce5ff; }
+.selected {
+  background: #4da3ff;
+  color: white;
+  border-color: #4da3ff;
+}
 
+/* ハイライト */
 .highlight {
   background: #ffe58a;
   padding: 2px 4px;
   border-radius: 4px;
 }
 
+/* おすすめ */
 #recommend {
   position: sticky;
   bottom: 0;
@@ -76,14 +124,14 @@ const listDiv = document.getElementById("list");
 const selectedDiv = document.getElementById("selected");
 const recDiv = document.getElementById("rec");
 
+let openedList = null;
+let activeBtn = null;
 
-// ★ 「-」無視用
+/* "-"無視 */
 function isValid(val) {
   return val && val !== "-" && val.trim() !== "";
 }
 
-
-// CSV読み込み
 fetch(url)
 .then(res => res.text())
 .then(text => {
@@ -105,8 +153,7 @@ fetch(url)
   render();
 });
 
-
-// 曲一覧
+/* 曲一覧 */
 function renderList() {
   listDiv.innerHTML = "";
 
@@ -125,8 +172,27 @@ function renderList() {
     songList.className = "song-list";
 
     btn.onclick = () => {
-      songList.style.display =
-        songList.style.display === "none" ? "block" : "none";
+      if (openedList && openedList !== songList) {
+        openedList.style.display = "none";
+      }
+
+      if (activeBtn && activeBtn !== btn) {
+        activeBtn.classList.remove("active");
+      }
+
+      const isOpen = songList.style.display === "block";
+
+      songList.style.display = isOpen ? "none" : "block";
+
+      if (isOpen) {
+        btn.classList.remove("active");
+        openedList = null;
+        activeBtn = null;
+      } else {
+        btn.classList.add("active");
+        openedList = songList;
+        activeBtn = btn;
+      }
     };
 
     grouped[artist].forEach(s => {
@@ -152,15 +218,13 @@ function renderList() {
   });
 }
 
-
-// 選択
+/* 選択 */
 function toggleSelect(id) {
   selectedSong = (selectedSong === id) ? null : id;
   render();
 }
 
-
-// 選択表示
+/* 選択表示 */
 function renderSelected() {
   if (!selectedSong) {
     selectedDiv.innerHTML = "曲を選択してください";
@@ -178,8 +242,7 @@ function renderSelected() {
   `;
 }
 
-
-// ★変換
+/* 星 */
 function scoreToStars(score) {
   if (score >= 10) return "★★★★★";
   if (score >= 7) return "★★★★";
@@ -188,14 +251,12 @@ function scoreToStars(score) {
   return "★";
 }
 
-
-// ハイライト
+/* ハイライト */
 function highlight(text, isMatch) {
   return isMatch ? `<span class="highlight">${text}</span>` : text;
 }
 
-
-// おすすめ
+/* おすすめ */
 function renderRecommend() {
   if (!selectedSong) {
     recDiv.innerHTML = "曲を選ぶとおすすめが出ます";
@@ -273,8 +334,7 @@ function renderRecommend() {
     : "おすすめ曲：0曲";
 }
 
-
-// 再描画
+/* 再描画 */
 function render() {
   renderList();
   renderSelected();
