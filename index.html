@@ -7,36 +7,41 @@
 <style>
 body {
   font-family: sans-serif;
-  padding: 20px;
-  background: #fafafa;
+  padding: 16px;
+  background: #f6f7fb;
+  color: #222;
 }
 
-.area { margin-bottom: 20px; }
+h1 {
+  font-size: 20px;
+  margin-bottom: 16px;
+}
 
-/* アーティスト一覧 */
+/* ===== カード共通 ===== */
+.card {
+  background: white;
+  border-radius: 14px;
+  padding: 12px;
+  margin-bottom: 14px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+}
+
+/* ===== アーティスト一覧 ===== */
 #list {
   display: flex;
   flex-wrap: wrap;
-  gap: 10px;
+  gap: 8px;
   max-height: 320px;
   overflow-y: auto;
-  padding-right: 5px;
 }
 
-/* アーティストボタン */
 .artist {
-  padding: 8px 14px;
-  background: linear-gradient(135deg, #f0f0f0, #e0e0e0);
+  padding: 7px 12px;
+  background: #eee;
   border-radius: 999px;
   cursor: pointer;
-  font-size: 14px;
+  font-size: 13px;
   transition: 0.2s;
-  user-select: none;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-}
-
-.artist:hover {
-  background: linear-gradient(135deg, #dcdcdc, #cfcfcf);
 }
 
 .artist.active {
@@ -44,15 +49,13 @@ body {
   color: white;
 }
 
-/* 曲リスト */
 .song-list {
   width: 100%;
-  margin-top: 5px;
+  margin-top: 6px;
   margin-bottom: 10px;
   display: none;
 }
 
-/* 曲ボタン */
 .song {
   display: inline-block;
   margin: 4px;
@@ -61,12 +64,7 @@ body {
   border-radius: 999px;
   border: 1px solid #ddd;
   cursor: pointer;
-  font-size: 13px;
-  transition: 0.2s;
-}
-
-.song:hover {
-  background: #f0f0f0;
+  font-size: 12px;
 }
 
 .selected {
@@ -75,22 +73,39 @@ body {
   border-color: #4da3ff;
 }
 
-/* ハイライト */
+/* ===== ハイライト ===== */
 .highlight {
   background: #ffe58a;
-  padding: 2px 4px;
+  padding: 1px 4px;
   border-radius: 4px;
 }
 
-/* おすすめ */
-#recommend {
-  position: sticky;
-  bottom: 0;
-  background: white;
+/* ===== おすすめカード ===== */
+.rec-card {
   padding: 10px;
-  border-top: 2px solid #ccc;
-  max-height: 300px;
-  overflow-y: auto;
+  border-radius: 12px;
+  border: 1px solid #eee;
+  margin-bottom: 10px;
+}
+
+.score {
+  font-size: 12px;
+  color: #666;
+  margin-top: 4px;
+}
+
+.reason {
+  font-size: 12px;
+  color: #444;
+  margin-top: 6px;
+  line-height: 1.4;
+}
+
+/* ===== セクションタイトル ===== */
+.section-title {
+  font-size: 14px;
+  margin-bottom: 8px;
+  color: #555;
 }
 </style>
 </head>
@@ -99,19 +114,22 @@ body {
 
 <h1>idollink</h1>
 
-<div class="area">
-<h2>選択中（1曲）</h2>
-<div id="selected"></div>
+<!-- 選択中 -->
+<div class="card">
+  <div class="section-title">選択中の曲</div>
+  <div id="selected">曲を選択してください</div>
 </div>
 
-<div class="area">
-<h2>曲を選ぶ</h2>
-<div id="list"></div>
+<!-- 曲一覧 -->
+<div class="card">
+  <div class="section-title">曲を選ぶ</div>
+  <div id="list"></div>
 </div>
 
-<div id="recommend">
-<h2>おすすめ</h2>
-<div id="rec"></div>
+<!-- おすすめ -->
+<div class="card">
+  <div class="section-title">この曲が好きなあなたには</div>
+  <div id="rec">曲を選ぶとおすすめが出ます</div>
 </div>
 
 <script>
@@ -127,7 +145,6 @@ const recDiv = document.getElementById("rec");
 let openedList = null;
 let activeBtn = null;
 
-/* "-"無視 */
 function isValid(val) {
   return val && val !== "-" && val.trim() !== "";
 }
@@ -172,6 +189,8 @@ function renderList() {
     songList.className = "song-list";
 
     btn.onclick = () => {
+      const isOpen = songList.style.display === "block";
+
       if (openedList && openedList !== songList) {
         openedList.style.display = "none";
       }
@@ -180,18 +199,16 @@ function renderList() {
         activeBtn.classList.remove("active");
       }
 
-      const isOpen = songList.style.display === "block";
-
       songList.style.display = isOpen ? "none" : "block";
 
-      if (isOpen) {
-        btn.classList.remove("active");
-        openedList = null;
-        activeBtn = null;
-      } else {
+      if (!isOpen) {
         btn.classList.add("active");
         openedList = songList;
         activeBtn = btn;
+      } else {
+        btn.classList.remove("active");
+        openedList = null;
+        activeBtn = null;
       }
     };
 
@@ -199,9 +216,7 @@ function renderList() {
       const div = document.createElement("div");
       div.className = "song";
 
-      if (selectedSong === s.id) {
-        div.classList.add("selected");
-      }
+      if (selectedSong === s.id) div.classList.add("selected");
 
       div.textContent = s.title;
 
@@ -226,42 +241,29 @@ function toggleSelect(id) {
 
 /* 選択表示 */
 function renderSelected() {
-  if (!selectedSong) {
-    selectedDiv.innerHTML = "曲を選択してください";
-    return;
-  }
+  if (!selectedSong) return;
 
   const s = songs.find(x => x.id === selectedSong);
 
   selectedDiv.innerHTML = `
     <div>
-      ${s.title} / ${s.artist}<br>
-      作曲: ${s.composer} / 作詞: ${s.lyricist} / 編曲: ${s.arranger}<br>
+      <b>${s.title}</b> / ${s.artist}<br><br>
+      作曲: ${s.composer}<br>
+      作詞: ${s.lyricist}<br>
+      編曲: ${s.arranger}<br>
       タグ: ${s.tags.join(", ")}
     </div>
   `;
 }
 
-/* 星 */
-function scoreToStars(score) {
-  if (score >= 10) return "★★★★★";
-  if (score >= 7) return "★★★★";
-  if (score >= 4) return "★★★";
-  if (score >= 2) return "★★";
-  return "★";
-}
-
 /* ハイライト */
-function highlight(text, isMatch) {
-  return isMatch ? `<span class="highlight">${text}</span>` : text;
+function highlight(text, match) {
+  return match ? `<span class="highlight">${text}</span>` : text;
 }
 
 /* おすすめ */
 function renderRecommend() {
-  if (!selectedSong) {
-    recDiv.innerHTML = "曲を選ぶとおすすめが出ます";
-    return;
-  }
+  if (!selectedSong) return;
 
   const base = songs.find(s => s.id === selectedSong);
 
@@ -272,63 +274,44 @@ function renderRecommend() {
       let score = 0;
       let reasons = [];
 
-      const composerMatch =
-        isValid(s.composer) &&
-        isValid(base.composer) &&
-        s.composer === base.composer;
+      const composerMatch = isValid(s.composer) && s.composer === base.composer;
+      const arrangerMatch = isValid(s.arranger) && s.arranger === base.arranger;
+      const lyricistMatch = isValid(s.lyricist) && s.lyricist === base.lyricist;
 
-      const arrangerMatch =
-        isValid(s.arranger) &&
-        isValid(base.arranger) &&
-        s.arranger === base.arranger;
+      const commonTags = s.tags.filter(t => base.tags.includes(t));
 
-      const lyricistMatch =
-        isValid(s.lyricist) &&
-        isValid(base.lyricist) &&
-        s.lyricist === base.lyricist;
-
-      const commonTags = s.tags.filter(t =>
-        isValid(t) && base.tags.includes(t)
-      );
-
-      if (composerMatch) { score += 5; reasons.push("作曲"); }
-      if (arrangerMatch) { score += 4; reasons.push("編曲"); }
-      if (lyricistMatch) { score += 4; reasons.push("作詞"); }
-
-      if (commonTags.length) {
-        score += commonTags.length;
-        reasons.push(`タグ:${commonTags.join(",")}`);
-      }
+      if (composerMatch) { score += 5; reasons.push("作曲一致"); }
+      if (arrangerMatch) { score += 4; reasons.push("編曲一致"); }
+      if (lyricistMatch) { score += 4; reasons.push("作詞一致"); }
+      if (commonTags.length) { score += commonTags.length; reasons.push("タグ一致"); }
 
       if (score === 0) return null;
 
-      return {
-        ...s,
-        score,
-        reasons,
-        composerMatch,
-        arrangerMatch,
-        lyricistMatch,
-        commonTags
-      };
+      return { ...s, score, reasons, composerMatch, arrangerMatch, lyricistMatch, commonTags };
     })
     .filter(Boolean)
-    .sort((a, b) => b.score - a.score)
+    .sort((a,b) => b.score - a.score)
     .slice(0, 10);
 
   recDiv.innerHTML = results.length
     ? results.map(r => `
-      <div style="margin-bottom:10px;">
-        ・${r.title} / ${r.artist}　${scoreToStars(r.score)}<br>
-        <small>
-        作曲: ${highlight(r.composer, r.composerMatch)} /
-        作詞: ${highlight(r.lyricist, r.lyricistMatch)} /
-        編曲: ${highlight(r.arranger, r.arrangerMatch)}<br>
-        タグ: ${r.tags.map(t =>
-          highlight(t, r.commonTags.includes(t))
-        ).join(", ")}<br>
-        理由: ${r.reasons.join(" / ")}
-        </small>
+      <div class="rec-card">
+        <b>${r.title}</b> / ${r.artist}<br>
+
+        <div class="reason">
+          ${highlight("作曲: " + r.composer, r.composerMatch)}<br>
+          ${highlight("作詞: " + r.lyricist, r.lyricistMatch)}<br>
+          ${highlight("編曲: " + r.arranger, r.arrangerMatch)}<br>
+          タグ: ${r.tags.map(t => highlight(t, r.commonTags.includes(t))).join(", ")}
+        </div>
+
+        <div class="score">
+          ★おすすめ度: ${r.score}
+        </div>
+
+        <div class="score">
+          理由: ${r.reasons.join(" / ")}
+        </div>
       </div>
     `).join("")
     : "おすすめ曲：0曲";
