@@ -163,7 +163,7 @@ fetch(url)
       composer: c[3],
       lyricist: c[4],
       arranger: c[5],
-      tags: c[6] ? c[6].split(" ") : []
+      /*tags: c[6] ? c[6].split(" ") : []*/
     };
   });
 
@@ -251,7 +251,6 @@ function renderSelected() {
       作曲: ${s.composer}<br>
       作詞: ${s.lyricist}<br>
       編曲: ${s.arranger}<br>
-      タグ: ${s.tags.join(", ")}
     </div>
   `;
 }
@@ -278,16 +277,16 @@ function renderRecommend() {
       const arrangerMatch = isValid(s.arranger) && s.arranger === base.arranger;
       const lyricistMatch = isValid(s.lyricist) && s.lyricist === base.lyricist;
 
-      const commonTags = s.tags.filter(t => base.tags.includes(t));
+      //const commonTags = s.tags.filter(t => base.tags.includes(t));
 
       if (composerMatch) { score += 5; reasons.push("作曲一致"); }
       if (arrangerMatch) { score += 4; reasons.push("編曲一致"); }
       if (lyricistMatch) { score += 4; reasons.push("作詞一致"); }
-      if (commonTags.length) { score += commonTags.length; reasons.push("タグ一致"); }
+      //if (commonTags.length) { score += commonTags.length; reasons.push("タグ一致"); }
 
       if (score === 0) return null;
 
-      return { ...s, score, reasons, composerMatch, arrangerMatch, lyricistMatch, commonTags };
+      return { ...s, score, reasons, composerMatch, arrangerMatch, lyricistMatch };
     })
     .filter(Boolean)
     .sort((a,b) => b.score - a.score)
@@ -302,7 +301,6 @@ function renderRecommend() {
           ${highlight("作曲: " + r.composer, r.composerMatch)}<br>
           ${highlight("作詞: " + r.lyricist, r.lyricistMatch)}<br>
           ${highlight("編曲: " + r.arranger, r.arrangerMatch)}<br>
-          タグ: ${r.tags.map(t => highlight(t, r.commonTags.includes(t))).join(", ")}
         </div>
 
         <div class="score">
